@@ -187,41 +187,6 @@ async function GetStreamTags(ChannelName){
   };
 
 
-  /* This Routine Doesn't actually work currently. User must log in, which kinda defeats whole purpose of the cookie
-  async function GetAuthToken(page) {
-    //Authorize the user to generate their accesss token. "User" must click 'Authorize', then script must read back the access_token key
-    console.log("Attempting to retrieve API Token.")
-    try{  
-      //First ensure user is logged in by going to a twitch page
-      await page.goto('https://www.twitch.tv/directory/following', { "waitUntil": "networkidle0" });
-      await checkLogin(page);
-      //Navigate to Auth URL Page to make it seem like user clicked the button
-      if (DebugMode >= 1 ) {console.log("\n------------------------------------\n" + "DEBUG -> Attempting to reach re-authorization URL")};
-      await page.goto(oAuthorizationURL + 'client_id=' + AppClientID + '&redirect_uri=' + AppRedirectURL + '&response_type=token', {
-        "waitUntil": "networkidle0" }); //https://github.com/puppeteer/puppeteer/blob/master/docs/api.md#pagegobackoptions
-         
-        //Once on return page, evaluate the returned URL
-        //Page returns this format url: https://localhost/#access_token=XXXXXXXXXXXXXXXXXXXXXXX&scope=&token_type=bearer 
-      
-     if (DebugMode >= 2 ) {console.log("DEBUG -> Current PAGE URL:  " + page.url())};
-      var parsedHash = new URLSearchParams(page.url());
-      if (parsedHash.get('access_token')) {
-          var access_token = parsedHash.get('access_token');
-          ApiTokenRetrieved = true 
-          console.log("\n------------------------------------\n" + "API Token Retrieved."+ "\n------------------------------------\n")
-          return access_token
-      } else {
-        console.log("Unable to retrieve API Token")
-        console.log("Please Visit This page to authorize your twitch account to use this app's API functionality")
-        console.log("https://rfbomb.github.io/DockerWatcherAuthPage.io/")
-        ApiTokenRetrieved = false
-        process.exit();
-      }
-    } catch(e) { console.log('🤬 Error: ', e);}
-  };
- */
-
- 
 module.exports = {  
     //Variables
     ApiAuthToken,
