@@ -1,0 +1,23 @@
+!#/bin/bash
+## Get the current directory of the folder
+CWD="$(pwd)"
+echo $CWD
+cd $CWD
+
+
+## Install NPM 
+echo 
+echo -------------------------------------
+echo Installing NPM
+bash npm install
+echo NPM Install Complete.
+echo -------------------------------------
+echo
+echo -------------------------------------
+echo Installing NPM Fetch
+bash npm install node-fetch --save
+echo NPM Fetch Install Complete
+echo -------------------------------------
+echo
+## Run Script
+npm start
