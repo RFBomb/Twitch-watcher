@@ -2,8 +2,8 @@ version: '3.5'
 services:
   valorant-watcher:
     #build: . #For local build
-    #image: valorant-watcher:latest #For local build
-    image: d3vm/valorant-watcher:latest
+    #image: warframe_watcher:latest #For local build
+    image: rfbomb/warframe_watcher:latest
     restart: always
     environment:
       - LoginToken=rxk38rh5qtyw95fkvm7kgfceh4mh6u   #This is the login token 'Token' referred to in main docs.
