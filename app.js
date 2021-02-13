@@ -209,7 +209,8 @@ async function ViewPriority(browser,page) {
   while (run) {
     try {
       //Check to refresh the browser -> Based on time and if watching randoms vs high-priority streams
-      if ( ForceRefresh || RefreshAvailable && dayjs(browser_last_refresh).isBefore(dayjs())) {
+      //Also, don't bother refreshing if still in sleep mode.
+      if ( ForceRefresh || RefreshAvailable && SleepMessageDisplayed == false && dayjs(browser_last_refresh).isBefore(dayjs())) {
         if (DebugMode >= 1 ) {console.log("\nDEBUG -> Triggered Browser Refresh -> " + TimeStamp() )}; 
         var newSpawn = await cleanup(browser, page);
         browser = newSpawn.browser;
