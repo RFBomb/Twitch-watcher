@@ -6,10 +6,13 @@ services:
     image: d3vm/valorant-watcher:latest
     restart: always
     environment:
-      - token=rxk38rh5qtyw95fkvm7kgfceh4mh6u #Example value from readme
-      #- streamersUrl=https://www.twitch.tv/directory/game/Rust?sort=VIEWER_COUNT&tl=c2542d6d-cd10-4532-919b-3d19f30a768b
-      #- watchAlwaysTopStreamer=true
-      #- channelsWithPriority=illojuan,alexby11,aroyitt
+      - LoginToken=rxk38rh5qtyw95fkvm7kgfceh4mh6u   #This is the login token 'Token' referred to in main docs.
+      - ApiAuthToken=rxk38rh5qtyw95fkvm7kgfceh4mh6u #Grab your API authorization token here: https://rfbomb.github.io/DockerWatcherAuthPage.io/ by clicking the 'Authorize' button.
+      #- ChannelName_1=warframe #This channel is highest priority - Overrides all other channels
+      #- ChannelName_2=day9tv   #Second highest priority channel
+      #- ChannelName_3=day9tv  #Third highest priority channel
+      - streamersUrl=https://www.twitch.tv/directory/game/Music #Stream random viewer from this page if preferred streamers are offline.
+      - IgnoreRandomChannels=false  #Set this to TRUE if you want the app to sit idle until a preferred streamer is online.
       #- userAgent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36
       #- scrollDelay=2000
       #- scrollTimes=5

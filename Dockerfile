@@ -6,4 +6,5 @@ RUN apk add --no-cache chromium nss freetype freetype-dev harfbuzz ca-certificat
 WORKDIR /usr/src/app
 COPY . .
 RUN npm install
+ENV DockerContainer=TRUE
 CMD ["npm","start"]

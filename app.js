@@ -14,6 +14,7 @@ var firstRun = true;
 var cookie = null;
 var streamers = null;
 var PreviousChannelName = null;
+var TotalWatchTime
 
 /* ========================================== Loggging Level =================================================================
 //  Level 0 = Defaults Only
@@ -39,11 +40,12 @@ const scrollTimes = (Number(process.env.scrollTimes) || 5);
 const streamerListRefresh = (Number(process.env.streamerListRefresh) || 1);
 const streamerListRefreshUnit = (process.env.streamerListRefreshUnit || 'hour'); //https://day.js.org/docs/en/manipulate/add
 
-const showBrowser = true; // false state equ headless mode;
+const showBrowser = false; // false state equ headless mode;
 const proxy = (process.env.proxy || ""); // "ip:port" By https://github.com/Jan710
 const proxyAuth = (process.env.proxyAuth || "");
 
 const browserScreenshot = (process.env.browserScreenshot || false);
+
 
 const browserClean = 1;
 const browserCleanUnit = 'hour';
@@ -71,8 +73,6 @@ const streamSettingsQuery = '[data-a-target="player-settings-button"]';
 const streamQualitySettingQuery = '[data-a-target="player-settings-menu-item-quality"]';
 const streamQualityQuery = 'input[data-a-target="tw-radio"]';
 
-var TotalWatchTime
-
 // ========================================== End Of CONFIG SECTION ===========================================================
 
 // API Setup
@@ -83,32 +83,16 @@ var ChannelName_2
 var ChannelName_3 
 var IgnoreRandomChannels
 var Game
-
-var minWatching = (Number(process.env.minWatching) || 15); // Minutes
-var maxWatching = (Number(process.env.maxWatching) || 30); //Minutes
+var minWatching
+var maxWatching
 
 async function SetupAPI() {
   //Set all the variables
-  var token, SetupSuccess
+  var ApiAuthToken, SetupSuccess
   try {
-    if (  await UserSettings.CheckConfigFileExists()  ) {
+    if (  process.env.DockerContainer  ) {
       // API Values
-      token = await UserSettings.ReadConfigSetting('ApiAuthToken')
-      streamersUrl = (await UserSettings.ReadConfigSetting('streamersUrl') || 'https://www.twitch.tv/directory/game/Warframe'); 
-      ChannelName_1 = (await UserSettings.ReadConfigSetting('ChannelName_1') || '');
-      ChannelName_2 = (await UserSettings.ReadConfigSetting('ChannelName_2') || '');
-      ChannelName_3 = (await UserSettings.ReadConfigSetting('ChannelName_3') || '');
-      IgnoreRandomChannels = (await UserSettings.ReadConfigSetting('IgnoreRandomChannels') || true );
-      Game = (await UserSettings.ReadConfigSetting('Game') || '')
-      // Other Values to be put into config
-      minWatching = (Number(await UserSettings.ReadConfigSetting('minWatching')) || 15); // Minutes
-      maxWatching = (Number(await UserSettings.ReadConfigSetting('maxWatching')) || 30); //Minutes
-      
-      SetupSuccess = true 
-
-    } else if (process.env.token) {
-      // API Values
-      token = process.env.ApiAuthToken
+      ApiAuthToken = process.env.ApiAuthToken
       streamersUrl = (process.env.streamersUrl || 'https://www.twitch.tv/directory/game/Warframe'); 
       ChannelName_1 = (process.env.ChannelName_1 || '');
       ChannelName_2 = (process.env.ChannelName_2 || '');
@@ -119,6 +103,22 @@ async function SetupAPI() {
       minWatching = (Number(process.env.minWatching) || 15); // Minutes
       maxWatching = (Number(process.env.maxWatching) || 30); //Minutes
 
+      SetupSuccess = true 
+      
+
+    } else if ( await UserSettings.CheckConfigFileExists() ) {
+      // API Values
+      ApiAuthToken = await UserSettings.ReadConfigSetting('ApiAuthToken')
+      streamersUrl = (await UserSettings.ReadConfigSetting('streamersUrl') || 'https://www.twitch.tv/directory/game/Warframe'); 
+      ChannelName_1 = (await UserSettings.ReadConfigSetting('ChannelName_1') || '');
+      ChannelName_2 = (await UserSettings.ReadConfigSetting('ChannelName_2') || '');
+      ChannelName_3 = (await UserSettings.ReadConfigSetting('ChannelName_3') || '');
+      IgnoreRandomChannels = (await UserSettings.ReadConfigSetting('IgnoreRandomChannels') || true );
+      Game = (await UserSettings.ReadConfigSetting('Game') || '')
+      // Other Values to be put into config
+      minWatching = (Number(await UserSettings.ReadConfigSetting('minWatching')) || 15); // Minutes
+      maxWatching = (Number(await UserSettings.ReadConfigSetting('maxWatching')) || 30); //Minutes
+      
       SetupSuccess = true 
 
     } else {
@@ -146,7 +146,7 @@ async function SetupAPI() {
     console.log('Please visit my discord channel to solve this problem: https://discord.gg/s8AH4aZ');
   }
 
-  HelixAPI.SetVariables(token,DebugMode)
+  HelixAPI.SetVariables(ApiAuthToken,DebugMode)
 
   // Test the API
   if (  await HelixAPI.TestAPIToken() ){
@@ -164,7 +164,7 @@ async function SetupAPI() {
 
 function stringToBoolean(string){
   var ret, str
-  str = string.toLowerCase().trim()
+  str = string.toString().toLowerCase().trim()
   if (DebugMode >=2) {console.log('stringToBoolean INPUT: ' + str)}
   switch(str){
     case 'false': case 'no': case '0': case null: { ret = false; break; }
@@ -219,7 +219,7 @@ async function ViewPriority(browser,page) {
         RefreshAvailable = false;   //After browser has been reset, ignore refreshing until you are sure that it is watching randoms instead of the high priority streams.
         ForceRefresh = false;       //Set the value to false to avoid refreshing it every loop
         browser_last_refresh = dayjs().add(browserClean, browserCleanUnit);
-        if (DebugMode >= 0 ) {console.log("DEBUG -> Browser Refresh Complete\n")}; 
+        if (DebugMode > 0 ) {console.log("DEBUG -> Browser Refresh Complete\n")}; 
       }
 
       // Check each stream in the priority list to determine which one to watch
@@ -498,18 +498,18 @@ async function readLoginData(testAuth) {
       cookie[0].value = testCookie;
       return cookie;
 
+    } else if (process.env.DockerContainer) {
+      console.log('✅ Env config found');
+      if (proxy) browserConfig.args.push('--proxy-server=' + proxy);
+      cookie[0].value = process.env.LoginToken; //Set cookie from env
+      browserConfig.executablePath = '/usr/bin/chromium-browser'; //For docker container
+      return cookie;
+
     }else if (  await UserSettings.CheckConfigFileExists()  ) {
       console.log('✅ Json config found!');
       if (proxy) browserConfig.args.push('--proxy-server=' + proxy);
       browserConfig.executablePath = await UserSettings.ReadConfigSetting('exec');
-      cookie[0].value = await UserSettings.ReadConfigSetting('token');
-      return cookie;
-
-    } else if (process.env.token) {
-      console.log('✅ Env config found');
-      if (proxy) browserConfig.args.push('--proxy-server=' + proxy);
-      cookie[0].value = process.env.token; //Set cookie from env
-      browserConfig.executablePath = '/usr/bin/chromium-browser'; //For docker container
+      cookie[0].value = await UserSettings.ReadConfigSetting('LoginToken');
       return cookie;
 
     } else {
@@ -563,7 +563,6 @@ async function cleanup(browser, page) {
   //await browser.close();
   return await spawnBrowser();
 }
-
 
 
 async function killBrowser(browser, page) {

@@ -85,9 +85,8 @@ async function WriteNewConfig(JSON_Object ) {
 async function SetupConfigFile() {
   //console.log('Creating config.json Structure');
   
-  //await WriteConfigSetting('token','1') // Taken care of during 'readLoginData' routine
-  //await WriteConfigSetting('exec','2')
-  
+  await WriteConfigSetting('LoginToken','1') // Taken care of during 'readLoginData' routine
+  await WriteConfigSetting('exec','2')
   await WriteConfigSetting('ApiAuthToken','')
   await WriteConfigSetting('streamersUrl','')
   await WriteConfigSetting('ChannelName_1','')
