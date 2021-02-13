@@ -204,6 +204,7 @@ async function ViewPriority(browser,page) {
   var browser_last_refresh = dayjs().add(browserClean, browserCleanUnit);
   var RefreshAvailable = true;
   var ForceRefresh = true;
+  var SleepMessageDisplayed = false;
 
   while (run) {
     try {
@@ -224,12 +225,15 @@ async function ViewPriority(browser,page) {
 
       // Check each stream in the priority list to determine which one to watch
       if ( await HelixAPI.CheckStreamerOnline(ChannelName_1) ) {         //View First Priority Channel
+          SleepMessageDisplayed = false;
           await ViewURL(page, ChannelName_1, minWatching);
       
       } else if ( await HelixAPI.CheckStreamerOnline(ChannelName_2) ) {  //View Second Priority Channel
+          SleepMessageDisplayed = false;
           await ViewURL(page, ChannelName_2, minWatching);
 
       } else if ( await HelixAPI.CheckStreamerOnline(ChannelName_3) ) {  //View Third Priority Channel
+          SleepMessageDisplayed = false;
           await ViewURL(page, ChannelName_3, minWatching);
 
       } else if ( IgnoreRandomChannels ) { // Don't bother viewing random pages, instead just sit idle until a desired channel comes online
@@ -239,8 +243,12 @@ async function ViewPriority(browser,page) {
               ForceRefresh = true; // Force a refresh if no channels available and have not done one yet (Save Resources)
             
             } else {  // Sitting Idle
-              var SM= 2;
-              console.log(TimeStamp() + ' -- No High-Priority Streamers online -> Sleeping for ' + SM + ' minutes'); 
+              var SM= 2;  //Sleep Timer (minutes)
+              if ( SleepMessageDisplayed == false  ) {
+                console.log(TimeStamp() + ' -- No High-Priority Streamers online -> Sleeping until priority streamer is online.');
+                console.log('-- API Check will be performed every ' + SM + ' minutes.');
+                SleepMessageDisplayed = true;
+              }
               sleep(SM * 60000); //Sleep for X minutes
             }
 
