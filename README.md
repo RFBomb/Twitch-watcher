@@ -26,14 +26,14 @@
  - Windows or Linux OS
  - Network connection (Should be obvious...)
  - [Nodejs](https://nodejs.org/en/download/) and [NPM](https://www.npmjs.com/get-npm)
- 
+
 ## Installation
 🎥 [Tutorial video by Ziyad](https://youtu.be/bwzv7wT44Ds) 🎥
 ### Windows
 1. Login to your twitch account
 2. Open inspector(F12 or Ctrl+Shift+I) on main site
 3. Find the stored cookie section
-4. Copy **auth-token**
+4. Copy **auth-token**  -- This is your LoginToken
 5. Clone this repo
 6. Install Chromium
 7. Usually the path to the Chromium executable is: C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
@@ -43,12 +43,19 @@
 1. Login to your twitch account
 2. Open inspector(F12 or Ctrl+Shift+I) on main site
 3. Find the stored cookie section
-4. Copy **auth-token**
+4. Copy **auth-token**  -- This is your LoginToken
 5. Clone this repo
 6. Install Chromium: [TUTORIAL 🤗](https://www.addictivetips.com/ubuntu-linux-tips/install-chromium-on-linux/)
 7. Locate Chromium executable: `whereis chromium` or `whereis chromium-browser`
 8. Install the dependencies with `npm install`
 9. Start the program with `npm start`
+
+### Getting your API Authorization Token
+1. Login to your twitch account
+2. go to this page I have set up:  https://rfbomb.github.io/DockerWatcherAuthPage.io/
+3. Click the 'Authorize' button. This will send a request to the Twitch authorization server, which will provide a unique key, similar to the LoginToken keys above. 
+4. Copy **ApiToken** once is it displayed on the page. This token will be used for the 'ApiAuthToken' variable.
+
 
 ## Docker
 <p align="center">
