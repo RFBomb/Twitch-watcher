@@ -96,7 +96,7 @@ async function SetupConfigFile() {
   await WriteConfigSetting('Game','')
   await WriteConfigSetting('minWatching','15')
   await WriteConfigSetting('maxWatching','30')
-  await WriteConfigSetting('TimeZone','America/New_York')
+  await WriteConfigSetting('UserTimeZone','America/New_York')
 }
 
 // Export all functions that are allowed to be public

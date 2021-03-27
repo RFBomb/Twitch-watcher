@@ -1,10 +1,6 @@
 require('dotenv').config();
 const puppeteer = require('puppeteer-core');
 const dayjs = require('dayjs');
-const utc_plugin = require('dayjs/plugin/utc'); // dependent on utc plugin
-const timezone_plugin = require('dayjs/plugin/timezone');
-dayjs.extend(utc_plugin);
-dayjs.extend(timezone_plugin);
 const cheerio = require('cheerio');
 var fs = require('fs');
 const inquirer = require('./input');
@@ -89,7 +85,7 @@ var IgnoreRandomChannels
 var Game
 var minWatching
 var maxWatching
-var TimeZone
+var UserTimeZone
 
 async function SetupVariables() {
   //Set all the variables
@@ -103,7 +99,7 @@ async function SetupVariables() {
       ChannelName_2 = (process.env.ChannelName_2 || '');
       ChannelName_3 = (process.env.ChannelName_3 || '');
       IgnoreRandomChannels = (process.env.IgnoreRandomChannels || true );
-      TimeZone = (process.env.ChannelName_3 || 'America/New_York');
+      UserTimeZone = (process.env.ChannelName_3 || 'America/New_York');
       Game = (process.env.Game || '')
       // Other Values to be put into config
       minWatching = (Number(process.env.minWatching) || 15); // Minutes
@@ -120,7 +116,7 @@ async function SetupVariables() {
       ChannelName_2 = (await UserSettings.ReadConfigSetting('ChannelName_2') || '');
       ChannelName_3 = (await UserSettings.ReadConfigSetting('ChannelName_3') || '');
       IgnoreRandomChannels = (await UserSettings.ReadConfigSetting('IgnoreRandomChannels') || true );
-      TimeZone = (await UserSettings.ReadConfigSetting('TimeZone') || 'America/New_York');
+      UserTimeZone = (await UserSettings.ReadConfigSetting('UserTimeZone') || 'America/New_York');
       Game = (await UserSettings.ReadConfigSetting('Game') || '')
       // Other Values to be put into config
       minWatching = (Number(await UserSettings.ReadConfigSetting('minWatching')) || 15); // Minutes
@@ -139,7 +135,7 @@ async function SetupVariables() {
       console.log('ChannelName_2 - ' + ChannelName_2) 
       console.log('ChannelName_3 - ' + ChannelName_3) 
       console.log('streamersUrl - ' + streamersUrl) 
-      console.log('TimeZone - ' + TimeZone) 
+      console.log('TimeZone - ' + UserTimeZone) 
       //console.log('Game - ' + Game)  
       console.log('minWatching - ' + minWatching) 
       console.log('maxWatching - ' + maxWatching) 
@@ -185,10 +181,11 @@ function stringToBoolean(string){
 
 function TimeStamp( seconds = false ){
   try {
+    let D = new Date().toLocaleString("en-US", {timeZone: UserTimeZone});
     if (seconds) {
-      return dayjs().format('MM-DD HH:mm:ss').tz(TimeZone)
+      return dayjs(D).format('MM-DD HH:mm:ss')
     }else {
-      return dayjs().format('MM-DD HH:mm').tz(TimeZone)
+      return dayjs(D).format('MM-DD HH:mm')
     }
   }catch(e) {
     console.log('🤬 Error: ', e);
