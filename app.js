@@ -177,18 +177,23 @@ function stringToBoolean(string){
 
 function TimeStamp( seconds = false ){
   try {
-    var NOW
+    var date = dayjs()
+    var timeOffsetInMS = date.getTimezoneOffset() * 60000;
+    date.setTime(date.getTime() - timeOffsetInMS);
     if (seconds) {
-      NOW = dayjs().format('MM-DD HH:mm:ss')
+      return dayjs(date).format('MM-DD HH:mm:ss')
     }else {
-      NOW = dayjs().format('MM-DD HH:mm')
+      return dayjs(date).format('MM-DD HH:mm')
     }
-    return NOW 
-
   }catch(e) {
     console.log('🤬 Error: ', e);
     process.exit()
   }
+}
+
+function adjustForTimezone(date) {
+  
+    return date
 }
 
 function sleep(milliseconds) {
