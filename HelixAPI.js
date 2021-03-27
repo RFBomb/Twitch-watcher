@@ -17,7 +17,7 @@ global.Headers = fetch.Headers;
   const StreamsURL = 'https://api.twitch.tv/helix/streams'
   const GamesURL = 'https://api.twitch.tv/helix/games'
   const AppRedirectURL = 'http://localhost/'
-  const AppClientID = ${{ secrets.TWITCHAPP_CLIENT_ID }}
+  const AppClientID = 'y4344ir7sj3tem9cqnzkv288grm4e9'
   const DropsEnabledTag = 'c2542d6d-cd10-4532-919b-3d19f30a768b'
   const DropsEnabledURLPrefix = '?tl='
 
