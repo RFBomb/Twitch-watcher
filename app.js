@@ -177,13 +177,13 @@ function stringToBoolean(string){
 
 function TimeStamp( seconds = false ){
   try {
-    var NOW, CD
+    var NOW
     if (seconds) {
       NOW = dayjs().format('MM-DD HH:mm:ss')
     }else {
       NOW = dayjs().format('MM-DD HH:mm')
     }
-    return CD + NOW 
+    return NOW 
 
   }catch(e) {
     console.log('🤬 Error: ', e);
@@ -244,7 +244,7 @@ async function ViewPriority(browser,page) {
         } else {  // Sitting Idle
           var SM= 2;  //Sleep Timer (minutes)
           if ( SleepMessageDisplayed == false  ) {
-            console.log('\n🕒' + TimeStamp() );
+            console.log('\n🕒 ' + TimeStamp() );
             console.log('-- No High-Priority Streamers online -> Sleeping until priority streamer is online.');
             console.log('-- API Check will be performed every ' + SM + ' minutes.');
             SleepMessageDisplayed = true;
