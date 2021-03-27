@@ -381,7 +381,7 @@ async function SleepWatching(MaxSleepTimer, ChannelURL, page) {
   var SleepMinutes = 1
   do {
     await page.waitFor(SleepMinutes * 60000); //Sleep for X minutes between checks
-    await scroll(page,2) //Scroll to keep page active
+    //await scroll(page,2) //Scroll to keep page active
     TotalWatchTime = TotalWatchTime + 1
     i = i + 1
 
