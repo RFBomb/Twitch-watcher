@@ -1,6 +1,10 @@
 require('dotenv').config();
 const puppeteer = require('puppeteer-core');
 const dayjs = require('dayjs');
+const utc_plugin = require('dayjs/plugin/utc'); // dependent on utc plugin
+const timezone_plugin = require('dayjs/plugin/timezone');
+dayjs.extend(utc_plugin);
+dayjs.extend(timezone_plugin);
 const cheerio = require('cheerio');
 var fs = require('fs');
 const inquirer = require('./input');
@@ -85,8 +89,9 @@ var IgnoreRandomChannels
 var Game
 var minWatching
 var maxWatching
+var TimeZone
 
-async function SetupAPI() {
+async function SetupVariables() {
   //Set all the variables
   var ApiAuthToken, SetupSuccess
   try {
@@ -98,6 +103,7 @@ async function SetupAPI() {
       ChannelName_2 = (process.env.ChannelName_2 || '');
       ChannelName_3 = (process.env.ChannelName_3 || '');
       IgnoreRandomChannels = (process.env.IgnoreRandomChannels || true );
+      TimeZone = (process.env.ChannelName_3 || 'America/New_York');
       Game = (process.env.Game || '')
       // Other Values to be put into config
       minWatching = (Number(process.env.minWatching) || 15); // Minutes
@@ -114,6 +120,7 @@ async function SetupAPI() {
       ChannelName_2 = (await UserSettings.ReadConfigSetting('ChannelName_2') || '');
       ChannelName_3 = (await UserSettings.ReadConfigSetting('ChannelName_3') || '');
       IgnoreRandomChannels = (await UserSettings.ReadConfigSetting('IgnoreRandomChannels') || true );
+      TimeZone = (await UserSettings.ReadConfigSetting('TimeZone') || 'America/New_York');
       Game = (await UserSettings.ReadConfigSetting('Game') || '')
       // Other Values to be put into config
       minWatching = (Number(await UserSettings.ReadConfigSetting('minWatching')) || 15); // Minutes
@@ -132,6 +139,7 @@ async function SetupAPI() {
       console.log('ChannelName_2 - ' + ChannelName_2) 
       console.log('ChannelName_3 - ' + ChannelName_3) 
       console.log('streamersUrl - ' + streamersUrl) 
+      console.log('TimeZone - ' + TimeZone) 
       //console.log('Game - ' + Game)  
       console.log('minWatching - ' + minWatching) 
       console.log('maxWatching - ' + maxWatching) 
@@ -177,13 +185,10 @@ function stringToBoolean(string){
 
 function TimeStamp( seconds = false ){
   try {
-    var D = date() // get local time
-    //var timeOffsetInMS = D.getTimezoneOffset() * 60000;
-    //D.setTime(D.getTime() - timeOffsetInMS);
     if (seconds) {
-      return dayjs(D).format('MM-DD HH:mm:ss')
+      return dayjs().format('MM-DD HH:mm:ss').tz(TimeZone)
     }else {
-      return dayjs(D).format('MM-DD HH:mm')
+      return dayjs().format('MM-DD HH:mm').tz(TimeZone)
     }
   }catch(e) {
     console.log('🤬 Error: ', e);
@@ -373,6 +378,7 @@ function BoolToOnlineOffline(bool){
     return 'OFFLINE'
   }
 }
+
 async function SleepWatching(MaxSleepTimer, ChannelURL, page) {
   var i = 0
   var SleepMinutes = 1
@@ -638,7 +644,7 @@ async function main() {
     page
   } = await spawnBrowser();
   
-  await SetupAPI();
+  await SetupVariables();
   
   //await getAllStreamer(page);
   console.log("=========================");
