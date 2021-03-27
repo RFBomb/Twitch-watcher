@@ -175,22 +175,22 @@ function stringToBoolean(string){
   return ret
 }
 
-
-
-function TimeStamp(){
+function TimeStamp( seconds = false ){
   try {
-  
-    const NOW = new Date(Date.now())
-    let Hour = NOW.getHours()
-    let Minutes =NOW.getMinutes()
-    let Seconds =NOW.getSeconds()
-    return Hour + ':' + Minutes //+ ' & ' + Seconds + 's'
-  
+    var NOW, CD
+    if (seconds) {
+      NOW = dayjs().format('MM-DD HH:mm:ss')
+    }else {
+      NOW = dayjs().format('MM-DD HH:mm')
+    }
+    return CD + NOW 
+
   }catch(e) {
     console.log('🤬 Error: ', e);
     process.exit()
   }
 }
+
 function sleep(milliseconds) {
   const date = Date.now();
   let currentDate = null;
@@ -202,23 +202,22 @@ function sleep(milliseconds) {
 async function ViewPriority(browser,page) {
   var streamer_last_refresh = dayjs().add(streamerListRefresh, streamerListRefreshUnit);
   var browser_last_refresh = dayjs().add(browserClean, browserCleanUnit);
-  var RefreshAvailable = true;
   var ForceRefresh = true;
   var SleepMessageDisplayed = false;
 
   while (run) {
     try {
-      //Check to refresh the browser -> Based on time and if watching randoms vs high-priority streams
-      //Also, don't bother refreshing if still in sleep mode.
-      if ( ForceRefresh || RefreshAvailable && SleepMessageDisplayed == false && dayjs(browser_last_refresh).isBefore(dayjs())) {
+      //Check to refresh the browser, don't bother refreshing if still in sleep mode.
+      var RefreshRequired = dayjs(browser_last_refresh).isBefore(dayjs());
+      if ( ForceRefresh || RefreshRequired && !SleepMessageDisplayed ) {
         if (DebugMode >= 1 ) {console.log("\nDEBUG -> Triggered Browser Refresh -> " + TimeStamp() )}; 
         var newSpawn = await cleanup(browser, page);
         browser = newSpawn.browser;
         page = newSpawn.page;
         firstRun = true;
+        RefreshRequired = false;
         //ApiToken = await GetAuthToken(page);  //Whenever the browser is refreshed, request a new token to ensure we are never going to have an expired one
         PreviousChannelName = ''; //Reset the Previous Channel Name to ensure that it will navigate on the next selection
-        RefreshAvailable = false;   //After browser has been reset, ignore refreshing until you are sure that it is watching randoms instead of the high priority streams.
         ForceRefresh = false;       //Set the value to false to avoid refreshing it every loop
         browser_last_refresh = dayjs().add(browserClean, browserCleanUnit);
         if (DebugMode > 0 ) {console.log("DEBUG -> Browser Refresh Complete\n")}; 
@@ -227,35 +226,34 @@ async function ViewPriority(browser,page) {
       // Check each stream in the priority list to determine which one to watch
       if ( await HelixAPI.CheckStreamerOnline(ChannelName_1) ) {         //View First Priority Channel
           SleepMessageDisplayed = false;
-          await ViewURL(page, ChannelName_1, minWatching);
+          if ( !RefreshRequired ) await ViewURL(page, ChannelName_1, minWatching);
       
       } else if ( await HelixAPI.CheckStreamerOnline(ChannelName_2) ) {  //View Second Priority Channel
           SleepMessageDisplayed = false;
-          await ViewURL(page, ChannelName_2, minWatching);
+          if ( !RefreshRequired ) await ViewURL(page, ChannelName_2, minWatching);
 
       } else if ( await HelixAPI.CheckStreamerOnline(ChannelName_3) ) {  //View Third Priority Channel
           SleepMessageDisplayed = false;
-          await ViewURL(page, ChannelName_3, minWatching);
+          if ( !RefreshRequired ) await ViewURL(page, ChannelName_3, minWatching);
 
       } else if ( IgnoreRandomChannels ) { // Don't bother viewing random pages, instead just sit idle until a desired channel comes online
 
-            RefreshAvailable = true ;
-            if (firstRun == false ){ 
-              ForceRefresh = true; // Force a refresh if no channels available and have not done one yet (Save Resources)
-            
-            } else {  // Sitting Idle
-              var SM= 2;  //Sleep Timer (minutes)
-              if ( SleepMessageDisplayed == false  ) {
-                console.log(TimeStamp() + ' -- No High-Priority Streamers online -> Sleeping until priority streamer is online.');
-                console.log('-- API Check will be performed every ' + SM + ' minutes.');
-                SleepMessageDisplayed = true;
-              }
-              sleep(SM * 60000); //Sleep for X minutes
-            }
+        if (firstRun == false ){ 
+          ForceRefresh = true; // Force a refresh if no channels available and have not done one yet (Save Resources)
+        
+        } else {  // Sitting Idle
+          var SM= 2;  //Sleep Timer (minutes)
+          if ( SleepMessageDisplayed == false  ) {
+            console.log('\n🕒' + TimeStamp() );
+            console.log('-- No High-Priority Streamers online -> Sleeping until priority streamer is online.');
+            console.log('-- API Check will be performed every ' + SM + ' minutes.');
+            SleepMessageDisplayed = true;
+          }
+          sleep(SM * 60000); //Sleep for X minutes
+        }
 
       } else { // View Random Page & reset the browser if needed
         if (DebugMode >= 0 ) {console.log("No High-Priority Streamers online -> Viewing Random Streamer")};  
-        RefreshAvailable = true;  
         streamer_last_refresh  = await viewRandomPage(page, streamer_last_refresh);
       }
 
@@ -277,7 +275,7 @@ async function ViewURL(page, ChannelURL, SleepTimer){
       //Page should already be on this channel, so no need to move to it.
 
     }else {
-      console.log('\n🔗 ' + TimeStamp() + ' -> Now watching streamer: ', baseUrl + ChannelURL);
+      console.log('\n🔗 ' + TimeStamp(false) + ' -> Now watching streamer: ', baseUrl + ChannelURL);
       await page.goto(baseUrl + ChannelURL, {
         "waitUntil": "networkidle0"
       }); //https://github.com/puppeteer/puppeteer/blob/master/docs/api.md#pagegobackoptions
@@ -331,14 +329,13 @@ async function ViewURL(page, ChannelURL, SleepTimer){
     let status = await queryOnWebsite(page, userStatusQuery); //status jQuery
     await clickWhenExist(page, sidebarQuery); //Close sidebar
 
-    console.log('💡 Account status:', status[0] ? status[0].children[0].data : "Unknown");
-    console.log('🕒 Time: ' + dayjs().format('HH:mm:ss'));
+    console.log('💡 Account status:', status[0] ? status[0].children[0].data : "Unknown"); //WHOSE ACCOUNT?
     
     //Sleep Timer
-    console.log('💤 Watching stream for ' + SleepTimer + ' minutes\n');
+    console.log('💤 Watching stream for ' + SleepTimer + ' minutes');
     await SleepWatching(SleepTimer, ChannelURL, page) //Scan for higher priority channels while watching this stream
     
-    console.log (TimeStamp() + ' -> You have watched this channel ( ' + ChannelURL + ' )  for ' + TotalWatchTime + 'minutes.')
+    console.log ('🕒' + TimeStamp() + ' -> You have watched this channel ( ' + ChannelURL + ' )  for ' + TotalWatchTime + 'minutes.')
     return;
 
   } catch (e) {
@@ -377,12 +374,13 @@ function BoolToOnlineOffline(bool){
   }
 }
 async function SleepWatching(MaxSleepTimer, ChannelURL, page) {
-  var i = 0;
-  var i2 = 0;
+  var i = 0
   var SleepMinutes = 1
   do {
     await page.waitFor(SleepMinutes * 60000); //Sleep for X minutes between checks
+    scroll(page,2) //Scroll to keep page active
     TotalWatchTime = TotalWatchTime + 1
+    i = i + 1
 
     if (DebugMode >= 2) {console.log("DEBUG -> Starting Sleep-Watching Routine - " + MaxSleepTimer + 'Minutes')}
     var Ch1 = await HelixAPI.CheckStreamerOnline(ChannelName_1)
@@ -396,43 +394,37 @@ async function SleepWatching(MaxSleepTimer, ChannelURL, page) {
       console.log('Channel 2 Name -> ' + ChannelName_2 + ' // Status : ' + BoolToOnlineOffline(ch2) )
       console.log('Channel 3 Name -> ' + ChannelName_3 + ' // Status : ' + BoolToOnlineOffline(ch3) )
     }
-    var HighPriority = false
+    var HigherPriority = false
 
     if (!(Cur)) { //The channel currently being viewed has gone offline
       if (DebugMode >= 0) {console.log("The channel currently being viewed has gone offline")}
-      i = MaxSleepTimer + 1
-      HighPriority = true
-
+      
     } else if ( ( ChannelURL ===  ChannelName_2 || ChannelURL === ChannelName_3 ) && Ch1 ) { //Channel 1 is LIVE while viewing Channel 2 / 3
       if (DebugMode >= 2) {console.log("DEBUG -> Channel 1 Live while watching channel 2 or 3")}
-      i = MaxSleepTimer + 1
-      HighPriority = true
+      HigherPriority = true
 
-    } else if ( ChannelURL === ChannelName_3  && Ch2 ) { //Channel 2 is LIVE while viewing Channel 3
-      if (DebugMode >= 2) {console.log("DEBUG -> channel 2 Live while watching channel 3")}
-      i = MaxSleepTimer + 1
-      HighPriority = true
+    } else if ( ChannelURL === ChannelName_3 && Ch2 ) { //Channel 2 is LIVE while viewing Channel 3
+      if (DebugMode >= 2) {console.log("DEBUG -> Channel 2 Live while watching channel 3")}
+      HigherPriority = true
 
     } else if ( ChannelURL == ChannelName_1 || ChannelURL == ChannelName_2 || ChannelURL == ChannelName_3 ) {    // Currently Watching a High Priority Channel
-      // Do Nothing
-      i2 = i2 + 1
-      if (DebugMode >= 1) {console.log("\nDEBUG -> You have been watching this channel for " + i2 + " minutes.\n")}
+      i = 0 // Reset Sleep Timer to keep watching channel
+      if (DebugMode >= 1) {console.log("DEBUG -> Current watching highest priorty channel available")}
 
-    } else if (  Ch1 || Ch2 || Ch3 ) {  //Atleast 1 high priority stream is online while not watching any of them -> Set i to the MaxTimer in order to exit the sleep loop
+    } else if ( Ch1 || Ch2 || Ch3 ) {  //Atleast 1 high priority stream is online while not watching any of them
       if (DebugMode >= 2) {console.log("DEBUG -> Channel 1, 2, or 3 are live while watching a random channel")}
-      i = MaxSleepTimer + 1
+      HigherPriority = true
       
-    } else {  // No High Priority streamer is online -> Increment the loop
-      i = i + 1
+    } else {  // No High Priority streamer is online
+      
     }    
-    if (DebugMode >= 1) {console.log("\nDEBUG -> You have been watching this channel for " + i + " minutes.\n")}
+    if (DebugMode >= 1) {console.log("DEBUG -> You have been watching this channel for " + TotalWatchTime + " minutes.")}
   
-  } while (i <= MaxSleepTimer);
+  } while (i <= MaxSleepTimer && !HigherPriority );
   
   if (DebugMode >= 2) {console.log("DEBUG -> Sleep-Watching Routine Complete")}
-  if (HighPriority){console.log("\nHigher Priority Streamer has been found. Switching Channels.")}
+  if (HighPriority){console.log("Higher Priority Streamer has been found. Switching Channels.")}
 }
-
 
 async function getAllStreamer(page) {
   console.log("=========================");
@@ -584,9 +576,8 @@ async function killBrowser(browser, page) {
 
 // ========================================== Browser Actions =============================================================
 
-async function scroll(page, times) {
-  console.log('🔨 Emulating scrolling...');
-
+async function scroll(page, times, LogEvent = false ) {
+  if ( LogEvent ) { console.log('🔨 Emulating scrolling...'); }
   for (var i = 0; i < times; i++) {
     await page.evaluate(async (page) => {
       var x = document.getElementsByClassName("scrollable-trigger__wrapper");

@@ -127,7 +127,7 @@ async function GetStreamTags(ChannelName){
       var Resp = await APICall(URL,  await StandardHeaders());
       if (DebugMode >= 4 ) {console.log("DEBUG -> JSON Data Pack:\n" + JSON.stringify(Resp) + "\n")};
       // Evaluate the input JSON package
-      if (Resp == false || Resp.data[0]){
+      if ( Resp.data[0] ){
         bolONLINE =  true
       }else {
         bolONLINE = false         
@@ -137,9 +137,6 @@ async function GetStreamTags(ChannelName){
     return bolONLINE
       
    };
-
-
-
 
    async function ReturnFirstStreamWithDropsEnabled(GameID, GameName) {
     // Gets the 20 most active streams and searches for the DropsEnabled tag
