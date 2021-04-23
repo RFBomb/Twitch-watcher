@@ -13,6 +13,7 @@ services:
       #- ChannelName_3=day9tv  #Third highest priority channel
       - streamersUrl=https://www.twitch.tv/directory/game/Music #Stream random viewer from this page if preferred streamers are offline.
       - IgnoreRandomChannels=false  #Set this to TRUE if you want the app to sit idle until a preferred streamer is online.
+      #- UserTimeZone=America/New_York #Define TimeZone
       #- userAgent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36
       #- scrollDelay=2000
       #- scrollTimes=5

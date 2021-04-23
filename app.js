@@ -99,7 +99,7 @@ async function SetupVariables() {
       ChannelName_2 = (process.env.ChannelName_2 || '');
       ChannelName_3 = (process.env.ChannelName_3 || '');
       IgnoreRandomChannels = (process.env.IgnoreRandomChannels || true );
-      UserTimeZone = (process.env.ChannelName_3 || 'America/New_York');
+      UserTimeZone = (process.env.UserTimeZone || 'America/New_York');
       Game = (process.env.Game || '')
       // Other Values to be put into config
       minWatching = (Number(process.env.minWatching) || 15); // Minutes
